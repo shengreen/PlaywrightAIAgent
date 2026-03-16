@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Payment Method</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .payment-container {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      color: #1e293b;
+      margin-bottom: 1.5rem;
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-icon {
+      font-size: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #374151;
+      font-size: 0.875rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .card-icons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .save-btn {
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.875rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 1rem;
+    }
+
+    .save-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .cancel-btn {
+      width: 100%;
+      background: transparent;
+      color: #6b7280;
+      border: 1px solid #d1d5db;
+      padding: 0.875rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .cancel-btn:hover {
+      background: #f3f4f6;
+    }
+
+    .success-message {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .success-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .payment-form {
+      display: block;
+    }
+
+    .payment-form.hidden {
+      display: none;
+    }
+
+    .card-number-input {
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class="payment-container">
+    <div class="payment-form" id="paymentForm">
+      <h2><span class="card-icon">💳</span> Add Payment Method</h2>
+
+      <div class="card-icons">
+        <span>💳</span>
+        <span>🏦</span>
+        <span>PayPal</span>
+      </div>
+
+      <form onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label for="cardNumber">Card Number</label>
+          <input
+            type="text"
+            id="cardNumber"
+            placeholder="1234 5678 9012 3456"
+            maxlength="19"
+            required
+            class="card-number-input"
+            oninput="formatCardNumber(this)"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="cardName">Cardholder Name</label>
+          <input
+            type="text"
+            id="cardName"
+            placeholder="John Doe"
+            required
+          >
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="expiry">Expiry Date</label>
+            <input
+              type="text"
+              id="expiry"
+              placeholder="MM/YY"
+              maxlength="5"
+              required
+              oninput="formatExpiry(this)"
+            >
+          </div>
+          <div class="form-group">
+            <label for="cvv">CVV</label>
+            <input
+              type="text"
+              id="cvv"
+              placeholder="123"
+              maxlength="4"
+              required
+            >
+          </div>
+        </div>
+
+        <button type="submit" class="save-btn">Save Card</button>
+        <button type="button" class="cancel-btn" onclick="cancelPayment()">Cancel</button>
+      </form>
+    </div>
+
+    <div class="success-message" id="successMessage">
+      <div class="success-icon">✅</div>
+      <h3>Payment Method Added!</h3>
+      <p style="color: #6b7280; margin-top: 0.5rem;">Your card has been saved successfully.</p>
+      <button class="save-btn" onclick="closePayment()" style="margin-top: 1.5rem;">Done</button>
+    </div>
+  </div>
+
+  <script>
+    function formatCardNumber(input) {
+      let value = input.value.replace(/\s/g, '').replace(/\D/g, '');
+      let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+      input.value = formatted;
+    }
+
+    function formatExpiry(input) {
+      let value = input.value.replace(/\D/g, '');
+      if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2);
+      }
+      input.value = value;
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+
+      // Simulate saving card
+      const cardNumber = document.getElementById('cardNumber').value;
+      const cardName = document.getElementById('cardName').value;
+      const expiry = document.getElementById('expiry').value;
+      const cvv = document.getElementById('cvv').value;
+
+      if (cardNumber && cardName && expiry && cvv) {
+        // Hide form, show success
+        document.getElementById('paymentForm').classList.add('hidden');
+        document.getElementById('successMessage').classList.add('show');
+
+        // Notify parent window
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'paymentAdded',
+            last4: cardNumber.slice(-4),
+            cardName: cardName
+          }, '*');
+        }
+      }
+    }
+
+    function cancelPayment() {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'paymentCancelled' }, '*');
+      }
+    }
+
+    function closePayment() {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'paymentClosed' }, '*');
+      }
+    }
+  </script>
+</body>
+</html>

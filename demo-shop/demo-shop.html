@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Shop - E-commerce Test Site</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    header {
+      background: #2563eb;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .cart-btn {
+      background: white;
+      color: #2563eb;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    h1 {
+      margin-bottom: 1.5rem;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .product-image {
+      width: 100%;
+      height: 150px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+    }
+
+    .product-name {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-price {
+      color: #2563eb;
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .add-btn {
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .add-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .add-btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    /* Cart Modal */
+    .cart-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cart-modal.open {
+      display: flex;
+    }
+
+    .cart-content {
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .cart-items {
+      margin-bottom: 1.5rem;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .cart-item-info {
+      flex: 1;
+    }
+
+    .cart-item-name {
+      font-weight: bold;
+    }
+
+    .cart-item-price {
+      color: #2563eb;
+    }
+
+    .remove-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 1rem;
+    }
+
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
+
+    .checkout-btn {
+      width: 100%;
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    .checkout-btn:hover {
+      background: #059669;
+    }
+
+    .checkout-btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    /* Order Success */
+    .order-success {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .order-success.show {
+      display: block;
+    }
+
+    .success-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    .order-number {
+      color: #64748b;
+      margin-top: 1rem;
+    }
+
+    .empty-cart {
+      text-align: center;
+      color: #64748b;
+      padding: 2rem;
+    }
+
+    /* Login Form (for testing) */
+    .auth-section {
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .login-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .user-info {
+      display: none;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-info.show {
+      display: flex;
+    }
+
+    .logout-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Contact Form */
+    .contact-form {
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .contact-form h2 {
+      margin-bottom: 1rem;
+    }
+
+    .contact-form textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      font-size: 1rem;
+      min-height: 100px;
+      margin-bottom: 1rem;
+      font-family: inherit;
+    }
+
+    .contact-form button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .form-message {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .form-message.success {
+      display: block;
+      background: #d1fae5;
+      color: #059669;
+    }
+
+    /* Payment Method Button */
+    .payment-method-btn {
+      background: #8b5cf6;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      margin-right: 0.5rem;
+    }
+
+    .payment-method-btn:hover {
+      background: #7c3aed;
+    }
+
+    /* Payment Modal with Iframe */
+    .payment-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .payment-modal.open {
+      display: flex;
+    }
+
+    .payment-modal-content {
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 450px;
+      height: 600px;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .payment-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .payment-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background: #f8fafc;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .payment-modal-header h3 {
+      font-size: 1rem;
+      color: #1e293b;
+    }
+
+    .payment-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #6b7280;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .payment-close-btn:hover {
+      color: #1e293b;
+    }
+
+    /* Saved Payment Methods */
+    .payment-methods-section {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .payment-methods-section h3 {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+
+    .payment-method-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+
+    .payment-method-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .payment-method-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .payment-method-icon {
+      font-size: 1.5rem;
+    }
+
+    .payment-method-details {
+      font-size: 0.875rem;
+    }
+
+    .payment-method-number {
+      font-weight: 500;
+    }
+
+    .payment-method-name {
+      color: #6b7280;
+      font-size: 0.75rem;
+    }
+
+    .remove-payment-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+
+    .remove-payment-btn:hover {
+      background: #dc2626;
+    }
+
+    .no-payment-methods {
+      text-align: center;
+      color: #6b7280;
+      padding: 1rem;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Demo Shop</div>
+    <div class="user-info" id="userInfo">
+      <span id="userName"></span>
+      <button class="payment-method-btn" id="addPaymentBtn" onclick="openPaymentModal()">Add Payment</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+    <button class="cart-btn" onclick="toggleCart()">
+      Cart
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </header>
+
+  <main>
+    <!-- Login Section -->
+    <section class="auth-section" id="loginSection">
+      <h2>Login</h2>
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required placeholder="user@example.com">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required placeholder="password123">
+        </div>
+        <button type="submit" class="login-btn">Login</button>
+      </form>
+    </section>
+
+    <!-- Products -->
+    <section>
+      <h1>Products</h1>
+      <div class="products" id="products">
+        <div class="product-card">
+          <div class="product-image">📱</div>
+          <div class="product-name">iPhone 15 Pro</div>
+          <div class="product-price">$999</div>
+          <button class="add-btn" onclick="addToCart('iPhone 15 Pro', 999)">Add to Cart</button>
+        </div>
+        <div class="product-card">
+          <div class="product-image">💻</div>
+          <div class="product-name">MacBook Pro</div>
+          <div class="product-price">$1999</div>
+          <button class="add-btn" onclick="addToCart('MacBook Pro', 1999)">Add to Cart</button>
+        </div>
+        <div class="product-card">
+          <div class="product-image">⌚</div>
+          <div class="product-name">Apple Watch</div>
+          <div class="product-price">$399</div>
+          <button class="add-btn" onclick="addToCart('Apple Watch', 399)">Add to Cart</button>
+        </div>
+        <div class="product-card">
+          <div class="product-image">🎧</div>
+          <div class="product-name">AirPods Pro</div>
+          <div class="product-price">$249</div>
+          <button class="add-btn" onclick="addToCart('AirPods Pro', 249)">Add to Cart</button>
+        </div>
+        <div class="product-card">
+          <div class="product-image">📺</div>
+          <div class="product-name">4K TV</div>
+          <div class="product-price">$799</div>
+          <button class="add-btn" onclick="addToCart('4K TV', 799)">Add to Cart</button>
+        </div>
+        <div class="product-card">
+          <div class="product-image">🎮</div>
+          <div class="product-name">Gaming Console</div>
+          <div class="product-price">$499</div>
+          <button class="add-btn" onclick="addToCart('Gaming Console', 499)">Add to Cart</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section class="contact-form" id="contactForm">
+      <h2>Contact Us</h2>
+      <form onsubmit="handleContact(event)">
+        <div class="form-group">
+          <label for="contactName">Name</label>
+          <input type="text" id="contactName" required placeholder="Your name">
+        </div>
+        <div class="form-group">
+          <label for="contactEmail">Email</label>
+          <input type="email" id="contactEmail" required placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label for="contactMessage">Message</label>
+          <textarea id="contactMessage" required placeholder="Your message..."></textarea>
+        </div>
+        <button type="submit">Send Message</button>
+        <div class="form-message" id="formMessage">Message sent successfully!</div>
+      </form>
+    </section>
+
+    <!-- Saved Payment Methods -->
+    <section class="payment-methods-section" id="paymentMethodsSection">
+      <h3>💳 Saved Payment Methods</h3>
+      <div id="savedPaymentMethods">
+        <div class="no-payment-methods">No payment methods saved. Click "Add Payment" to add one.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Cart Modal -->
+  <div class="cart-modal" id="cartModal">
+    <div class="cart-content">
+      <div class="cart-header">
+        <h2>Shopping Cart</h2>
+        <button class="close-btn" onclick="toggleCart()">&times;</button>
+      </div>
+
+      <div id="orderSuccess" class="order-success">
+        <div class="success-icon">✅</div>
+        <h2>Order Placed Successfully!</h2>
+        <p class="order-number">Order #<span id="orderNumber"></span></p>
+        <button class="checkout-btn" onclick="closeOrderSuccess()" style="margin-top: 1rem;">Continue Shopping</button>
+      </div>
+
+      <div id="cartItemsContainer">
+        <div class="cart-items" id="cartItems">
+          <div class="empty-cart">Your cart is empty</div>
+        </div>
+        <div class="cart-total">
+          <span>Total:</span>
+          <span id="cartTotal">$0</span>
+        </div>
+        <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>
+          Checkout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Modal with Iframe -->
+  <div class="payment-modal" id="paymentModal">
+    <div class="payment-modal-content">
+      <div class="payment-modal-header">
+        <h3>Add Payment Method</h3>
+        <button class="payment-close-btn" onclick="closePaymentModal()">&times;</button>
+      </div>
+      <iframe
+        class="payment-iframe"
+        id="paymentIframe"
+        src="payment-form.html"
+        title="Payment Form"
+      ></iframe>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let cart = [];
+    let isLoggedIn = false;
+    let userEmail = '';
+    let savedPaymentMethods = [];
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('addPaymentBtn').style.display = 'none';
+    });
+
+    // Listen for messages from iframe
+    window.addEventListener('message', function(e) {
+      if (e.data.type === 'paymentAdded') {
+        // Add to saved payment methods
+        savedPaymentMethods.push({
+          last4: e.data.last4,
+          cardName: e.data.cardName,
+          addedAt: new Date().toISOString()
+        });
+        updatePaymentMethodsUI();
+        closePaymentModal();
+      } else if (e.data.type === 'paymentCancelled' || e.data.type === 'paymentClosed') {
+        closePaymentModal();
+      }
+    });
+
+    // Open payment modal
+    function openPaymentModal() {
+      const modal = document.getElementById('paymentModal');
+      modal.classList.add('open');
+      // Reset iframe src to reload the form
+      const iframe = document.getElementById('paymentIframe');
+      iframe.src = 'payment-form.html';
+    }
+
+    // Close payment modal
+    function closePaymentModal() {
+      const modal = document.getElementById('paymentModal');
+      modal.classList.remove('open');
+    }
+
+    // Update payment methods UI
+    function updatePaymentMethodsUI() {
+      const container = document.getElementById('savedPaymentMethods');
+
+      if (savedPaymentMethods.length === 0) {
+        container.innerHTML = '<div class="no-payment-methods">No payment methods saved. Click "Add Payment" to add one.</div>';
+        return;
+      }
+
+      container.innerHTML = savedPaymentMethods.map((method, index) => `
+        <div class="payment-method-card">
+          <div class="payment-method-info">
+            <span class="payment-method-icon">💳</span>
+            <div class="payment-method-details">
+              <div class="payment-method-number">•••• •••• •••• ${method.last4}</div>
+              <div class="payment-method-name">${method.cardName}</div>
+            </div>
+          </div>
+          <button class="remove-payment-btn" onclick="removePaymentMethod(${index})">Remove</button>
+        </div>
+      `).join('');
+    }
+
+    // Remove payment method
+    function removePaymentMethod(index) {
+      savedPaymentMethods.splice(index, 1);
+      updatePaymentMethodsUI();
+    }
+
+    // Add to cart
+    function addToCart(name, price) {
+      cart.push({ name, price });
+      updateCartUI();
+    }
+
+    // Remove from cart
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCartUI();
+    }
+
+    // Update cart UI
+    function updateCartUI() {
+      const cartCount = document.getElementById('cartCount');
+      const cartItems = document.getElementById('cartItems');
+      const cartTotal = document.getElementById('cartTotal');
+      const checkoutBtn = document.getElementById('checkoutBtn');
+
+      cartCount.textContent = cart.length;
+
+      if (cart.length === 0) {
+        cartItems.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+        cartTotal.textContent = '$0';
+        checkoutBtn.disabled = true;
+      } else {
+        cartItems.innerHTML = cart.map((item, index) => `
+          <div class="cart-item">
+            <div class="cart-item-info">
+              <div class="cart-item-name">${item.name}</div>
+              <div class="cart-item-price">$${item.price}</div>
+            </div>
+            <button class="remove-btn" onclick="removeFromCart(${index})">Remove</button>
+          </div>
+        `).join('');
+
+        const total = cart.reduce((sum, item) => sum + item.price, 0);
+        cartTotal.textContent = '$' + total;
+        checkoutBtn.disabled = !isLoggedIn;
+      }
+    }
+
+    // Toggle cart modal
+    function toggleCart() {
+      const modal = document.getElementById('cartModal');
+      modal.classList.toggle('open');
+
+      // Reset order success view when opening
+      if (modal.classList.contains('open')) {
+        document.getElementById('orderSuccess').classList.remove('show');
+        document.getElementById('cartItemsContainer').style.display = 'block';
+      }
+    }
+
+    // Checkout
+    function checkout() {
+      if (!isLoggedIn) {
+        alert('Please login first');
+        return;
+      }
+
+      if (cart.length === 0) {
+        alert('Your cart is empty');
+        return;
+      }
+
+      // Generate order number
+      const orderNumber = 'ORD-' + Date.now();
+      document.getElementById('orderNumber').textContent = orderNumber;
+
+      // Show success
+      document.getElementById('cartItemsContainer').style.display = 'none';
+      document.getElementById('orderSuccess').classList.add('show');
+
+      // Clear cart
+      cart = [];
+      updateCartUI();
+    }
+
+    // Close order success
+    function closeOrderSuccess() {
+      document.getElementById('orderSuccess').classList.remove('show');
+      document.getElementById('cartItemsContainer').style.display = 'block';
+      toggleCart();
+    }
+
+    // Login
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Simple validation (demo only)
+      if (email && password) {
+        isLoggedIn = true;
+        userEmail = email;
+
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('userInfo').classList.add('show');
+        document.getElementById('userName').textContent = email;
+        document.getElementById('addPaymentBtn').style.display = 'inline-block';
+
+        updateCartUI();
+      }
+    }
+
+    // Logout
+    function logout() {
+      isLoggedIn = false;
+      userEmail = '';
+
+      document.getElementById('loginSection').style.display = 'block';
+      document.getElementById('userInfo').classList.remove('show');
+      document.getElementById('loginForm').reset();
+      document.getElementById('addPaymentBtn').style.display = 'none';
+
+      updateCartUI();
+    }
+
+    // Contact form
+    function handleContact(e) {
+      e.preventDefault();
+      const message = document.getElementById('formMessage');
+      message.classList.add('success');
+
+      setTimeout(() => {
+        message.classList.remove('success');
+        document.getElementById('contactMessage').value = '';
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

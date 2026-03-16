@@ -1,0 +1,56 @@
+# Environment variables (API keys, secrets, credentials)
+# NEVER commit real .env files - only .env.example should be committed
+.env
+.env.local
+.env.production
+.env.*.local
+
+# API Keys and Secrets - explicit patterns
+*.pem
+*.key
+*.crt
+credentials.json
+secrets.json
+apikeys.json
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tgz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Test coverage
+coverage/
+
+# Temp files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Database (may contain sensitive data)
+data/*.json
+!data/database.json.example
+!data/.gitkeep
+
+# Package files (if you want to keep lock files, remove this)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml

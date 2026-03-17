@@ -195,5 +195,6 @@ async function runAllTests(testCases, onProgress = () => {}) {
 
 module.exports = {
   runTest,
-  runAllTests
+  runAllTests,
+  classifyErrorByRules
 };

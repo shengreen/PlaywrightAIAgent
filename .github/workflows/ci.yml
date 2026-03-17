@@ -12,16 +12,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
 
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
 
-    - name: Install dependencies
+    - name: Check directory structure
+      run: ls -la && pwd
+
+    - name: Navigate to correct directory
       run: |
-        npm install
+        if [ -d "PlaywrightAIAgent" ]; then
+          cd PlaywrightAIAgent
+        fi
+        ls -la
+
+    - name: Install dependencies
+      run: npm install
 
     - name: Run tests
-      run: |
-        npm test
+      run: npm test

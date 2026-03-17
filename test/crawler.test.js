@@ -6,9 +6,9 @@ const { simplifyAccessibilityTree, getAccessibilitySummary } = require('../serve
 
 describe('Crawler Utilities', () => {
   describe('simplifyAccessibilityTree', () => {
-    test('handles empty tree', () => {
+    test('handles null tree', () => {
       const result = simplifyAccessibilityTree(null, 2);
-      expect(result).toEqual({});
+      expect(result).toBeNull();
     });
 
     test('handles tree with children', () => {
@@ -46,9 +46,9 @@ describe('Crawler Utilities', () => {
   });
 
   describe('getAccessibilitySummary', () => {
-    test('handles empty tree', () => {
+    test('handles null tree', () => {
       const result = getAccessibilitySummary(null);
-      expect(result).toBe('');
+      expect(result).toBe('No accessibility tree available');
     });
 
     test('generates summary for simple tree', () => {

@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db');
 const { runTest, runAllTests } = require('../services/runner');
 const { generateReport, analyzeTestResults } = require('../services/analyzer');
+const { generatePDFReport } = require('../services/pdfGenerator');
 const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
@@ -159,6 +160,27 @@ router.post('/analyze', async (req, res) => {
       analysis,
       usage: analysis.usage
     });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 生成 PDF 报告
+router.post('/report-pdf', async (req, res) => {
+  try {
+    const { reportData, url } = req.body;
+
+    if (!reportData) {
+      return res.status(400).json({ error: 'reportData is required' });
+    }
+
+    // 生成 PDF
+    const pdfBuffer = await generatePDFReport(reportData, url || '');
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=webotest-report.pdf');
+    res.send(pdfBuffer);
 
   } catch (error) {
     res.status(500).json({ error: error.message });

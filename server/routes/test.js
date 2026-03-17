@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { runTest, runAllTests } = require('../services/runner');
-const { generateReport } = require('../services/analyzer');
+const { generateReport, analyzeTestResults } = require('../services/analyzer');
 const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
@@ -136,6 +136,28 @@ router.post('/run-script', async (req, res) => {
       url,
       description: testCase.description,
       ...result
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// AI 分析测试结果
+router.post('/analyze', async (req, res) => {
+  try {
+    const { results, url } = req.body;
+
+    if (!results || !Array.isArray(results)) {
+      return res.status(400).json({ error: 'results array is required' });
+    }
+
+    // 调用 AI 分析
+    const analysis = await analyzeTestResults(results, url || '');
+
+    res.json({
+      analysis,
+      usage: analysis.usage
     });
 
   } catch (error) {

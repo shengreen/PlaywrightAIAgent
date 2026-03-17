@@ -21,6 +21,14 @@
 - ✅ 探索性测试：AI 自动发现潜在问题
 - ✅ 零测试团队：中小公司无需专职测试人员
 
+## 效果展示
+
+![Workflow](docs/snapshots/snapshot_workflow.png)
+
+![Generate Scripts](docs/snapshots/snapshot_generatescripts.png)
+
+![Generate Report](docs/snapshots/snapshot_generatereport.png)
+
 ## 快速开始
 
 ### 1. 克隆项目

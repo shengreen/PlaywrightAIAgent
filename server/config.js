@@ -9,7 +9,7 @@ module.exports = {
     model: process.env.MINIMAX_MODEL || 'abab6.5s-chat'
   },
   crawl: {
-    cacheTTL: 60 * 60 * 1000, // 1小时
+    cacheTTL: process.env.REDIS_TTL_MS || 60 * 60 * 1000, // 从环境变量读取，默认1小时
     timeout: 30000
   },
   test: {

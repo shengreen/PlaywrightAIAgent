@@ -1,5 +1,5 @@
 const { chromium } = require('playwright');
-const db = require('../db');
+const { crawlCache, generateTreeHash } = require('./redis');
 const config = require('../config');
 
 let browser = null;
@@ -27,19 +27,6 @@ async function getBrowser() {
  */
 async function crawlAccessibilityTree(url, options = {}) {
   const { preScript, waitFor = 3000, waitForSelector } = options;
-
-  // 检查缓存
-  const cached = await db.crawlCache.get(url);
-
-  if (cached) {
-    return {
-      ...cached,
-      cached: true,
-      accessibilityTree: cached.accessibilityTree,
-      consoleLogs: cached.consoleLogs || [],
-      pageInfo: cached.pageInfo || { title: cached.url, url: cached.url, finalUrl: cached.url }
-    };
-  }
 
   const browser = await getBrowser();
   const context = await browser.newContext({
@@ -193,8 +180,29 @@ async function crawlAccessibilityTree(url, options = {}) {
       crawledAt: new Date().toISOString()
     };
 
-    // 缓存结果
-    await db.crawlCache.set(url, accessibilityTree, screenshot, consoleLogs, pageInfo);
+    // 检查缓存（对比 tree hash）
+    const currentHash = generateTreeHash(accessibilityTree);
+    const { data: cachedResult, isHit } = await crawlCache.check(url, accessibilityTree);
+
+    if (isHit) {
+      console.log(`[缓存命中] ${url} (hash: ${currentHash})`);
+      await context.close();
+      return {
+        ...cachedResult,
+        cached: true
+      };
+    }
+
+    // 缓存未命中或 tree 变化，更新缓存
+    console.log(`[缓存更新] ${url} (hash: ${currentHash})`);
+    const cacheTTLSeconds = Math.floor(config.crawl.cacheTTL / 1000); // 毫秒转秒
+    await crawlCache.set(url, {
+      url,
+      accessibilityTree,
+      screenshot,
+      consoleLogs,
+      pageInfo
+    }, currentHash, cacheTTLSeconds);
 
     return result;
 

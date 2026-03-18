@@ -16,6 +16,7 @@
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
     "fs-extra": "^11.2.0",
+    "ioredis": "^5.10.0",
     "pdfkit": "^0.18.0",
     "playwright": "^1.41.2",
     "uuid": "^9.0.1"
@@ -26,7 +27,11 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/test/**/*.test.js"],
-    "collectCoverageFrom": ["server/**/*.js"]
+    "testMatch": [
+      "**/test/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "server/**/*.js"
+    ]
   }
 }

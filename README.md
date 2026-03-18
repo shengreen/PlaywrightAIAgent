@@ -29,6 +29,13 @@
 - **AI 分析**：自动分类错误类型（环境问题 / 脚本错误 / 真实 Bug）
 - **PDF 报告**：一键生成完整测试报告，支持下载
 
+### 技术亮点
+
+- **智能缓存**：基于 URL + 页面内容 hash 双重验证，避免重复爬取
+- **LLM 响应缓存**：相同页面 + 相同需求时复用 AI 回答，节省 API 费用
+- **多模型支持**：支持 OpenAI、Anthropic、Minimax 等兼容 OpenAI API 的大模型
+- **Accessibility Tree**：基于无障碍树定位元素，脚本更稳定
+
 ## 适用场景
 
 - ✅ 回归测试：快速验证核心功能是否正常
@@ -125,11 +132,29 @@ PlaywrightAIAgent/
 
 ## 配置说明
 
+### AI 配置
+
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
 | `MINIMAX_API_KEY` | AI API Key | （必填） |
 | `MINIMAX_BASE_URL` | API 地址 | https://api.minimax.chat/v1 |
 | `MINIMAX_MODEL` | 使用模型 | abab6.5s-chat |
+
+### Redis 缓存配置（可选）
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `REDIS_HOST` | Redis 主机 | localhost |
+| `REDIS_PORT` | Redis 端口 | 6379 |
+| `REDIS_PASSWORD` | Redis 密码 | （无） |
+| `REDIS_TTL_MS` | 缓存过期时间（毫秒） | 3600000（1小时） |
+
+> 启用 Redis 后，页面爬取和 LLM 响应会被缓存，重复测试时速度更快、费用更低。
+
+### 服务配置
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
 | `PORT` | 服务端口 | 3001 |
 
 ## 命令

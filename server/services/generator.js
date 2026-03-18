@@ -1,5 +1,6 @@
 const { callLLM, parseJSON } = require('./llm');
 const { simplifyAccessibilityTree, getAccessibilitySummary } = require('./crawler');
+const { generateTreeHash } = require('./redis');
 const fs = require('fs');
 const path = require('path');
 
@@ -28,9 +29,11 @@ const PROMPTS = {
  */
 async function generateTestCases(crawlResult, instruction = '') {
   const { accessibilityTree, pageInfo, consoleLogs } = crawlResult;
+  const url = pageInfo?.url || crawlResult.url;
 
   const simplifiedTree = simplifyAccessibilityTree(accessibilityTree, 4);
   const treeSummary = getAccessibilitySummary(accessibilityTree);
+  const treeHash = generateTreeHash(accessibilityTree);
 
   const systemPrompt = PROMPTS.testcase || `你是一个专业的QA工程师，擅长分析网页并生成测试用例。
 
@@ -58,7 +61,10 @@ ${treeSummary}
 
 请生成5-10个测试用例，覆盖页面主要功能。`;
 
-  const llmResponse = await callLLM(systemPrompt, userPrompt);
+  const llmResponse = await callLLM(systemPrompt, userPrompt, {
+    url,
+    treeHash
+  });
 
   // Handle both old string format and new object format
   const content = typeof llmResponse === 'string' ? llmResponse : llmResponse.content;
@@ -93,7 +99,9 @@ ${treeSummary}
  */
 async function generatePlaywrightScript(testCase, crawlResult) {
   const { accessibilityTree, pageInfo } = crawlResult;
+  const url = pageInfo?.url || crawlResult.url;
   const simplifiedTree = simplifyAccessibilityTree(accessibilityTree, 3);
+  const treeHash = generateTreeHash(accessibilityTree);
 
   const systemPrompt = PROMPTS.generator || `你是一个Web自动化测试专家。基于页面的Accessibility Tree生成稳定可靠的自动化测试代码。
 
@@ -144,7 +152,10 @@ ${JSON.stringify(simplifiedTree, null, 2)}
 
 请生成基于上述Accessibility Tree的JavaScript测试代码。代码应该能直接在浏览器控制台执行。`;
 
-  const response = await callLLM(systemPrompt, userPrompt);
+  const response = await callLLM(systemPrompt, userPrompt, {
+    url,
+    treeHash
+  });
 
   // Extract usage info if available
   const usage = typeof response === 'object' ? response.usage : null;

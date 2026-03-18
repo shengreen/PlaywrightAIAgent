@@ -161,8 +161,89 @@ const crawlCache = {
   }
 };
 
+// LLM 响应缓存
+const llmCache = {
+  /**
+   * 生成 LLM 请求的缓存 key
+   * @param {string} systemPrompt - 系统提示
+   * @param {string} userPrompt - 用户提示
+   * @param {Object} options - 选项
+   * @returns {string} hash key
+   */
+  generateKey(systemPrompt, userPrompt, options = {}) {
+    const { temperature = 0.7, maxTokens = 4000, model } = options;
+    const keyData = JSON.stringify({ systemPrompt, userPrompt, temperature, maxTokens, model });
+    return `llm:${crypto.createHash('md5').update(keyData).digest('hex').substring(0, 16)}`;
+  },
+
+  /**
+   * 获取 LLM 缓存
+   * @param {string} key - 缓存 key
+   * @returns {Object|null} 缓存结果
+   */
+  async get(key) {
+    try {
+      const client = getRedis();
+      const cached = await client.get(key);
+      if (cached) {
+        const data = JSON.parse(cached);
+        console.log(`[LLM缓存命中] ${key}`);
+        return { ...data, cached: true };
+      }
+      return null;
+    } catch (err) {
+      console.error('LLM Redis get 错误:', err.message);
+      return null;
+    }
+  },
+
+  /**
+   * 设置 LLM 缓存
+   * @param {string} key - 缓存 key
+   * @param {Object} data - LLM 响应数据
+   * @param {number} ttl - 过期时间（秒），默认 24 小时
+   */
+  async set(key, data, ttl = 86400) {
+    try {
+      const client = getRedis();
+      await client.setex(key, ttl, JSON.stringify(data));
+    } catch (err) {
+      console.error('LLM Redis set 错误:', err.message);
+    }
+  },
+
+  /**
+   * 清除所有 LLM 缓存
+   */
+  async clear() {
+    try {
+      const client = getRedis();
+      const keys = await client.keys('llm:*');
+      if (keys.length > 0) {
+        await client.del(...keys);
+      }
+    } catch (err) {
+      console.error('LLM Redis clear 错误:', err.message);
+    }
+  },
+
+  /**
+   * 获取 LLM 缓存统计
+   */
+  async getStats() {
+    try {
+      const client = getRedis();
+      const keys = await client.keys('llm:*');
+      return { count: keys.length };
+    } catch (err) {
+      return { count: 0, error: err.message };
+    }
+  }
+};
+
 module.exports = {
   getRedis,
   crawlCache,
+  llmCache,
   generateTreeHash
 };

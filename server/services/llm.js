@@ -1,18 +1,42 @@
 const axios = require('axios');
 const config = require('../config');
+const { llmCache } = require('./redis');
 
 /**
  * 调用 Minimax LLM API
  * @param {string} systemPrompt - 系统提示
  * @param {string} userPrompt - 用户提示
  * @param {Object} options - 选项
- * @returns {Object} { content, usage } LLM 回复和使用量
+ * @param {string} options.url - 网页URL（用于缓存）
+ * @param {string} options.treeHash - accessibility tree hash（用于缓存）
+ * @returns {Object} { content, usage, cached } LLM 回复和使用量
  */
 async function callLLM(systemPrompt, userPrompt, options = {}) {
-  const { temperature = 0.7, maxTokens = 4000 } = options;
+  const { temperature = 0.7, maxTokens = 4000, useCache = true, url, treeHash } = options;
 
   if (!config.minimax.apiKey) {
     throw new Error('MINIMAX_API_KEY not configured');
+  }
+
+  // 生成缓存 key：URL + treeHash + prompt 全部包含才命中
+  const cacheKey = llmCache.generateKey(systemPrompt, userPrompt, {
+    ...options,
+    model: config.minimax.model,
+    url: url || 'none',
+    treeHash: treeHash || 'none'
+  });
+
+  // 尝试从缓存获取
+  if (useCache && url && treeHash) {
+    const cachedResult = await llmCache.get(cacheKey);
+    if (cachedResult) {
+      console.log(`[LLM缓存命中] ${url.substring(0, 30)}... (treeHash: ${treeHash})`);
+      return {
+        content: cachedResult.content,
+        usage: cachedResult.usage,
+        cached: true
+      };
+    }
   }
 
   try {
@@ -40,10 +64,20 @@ async function callLLM(systemPrompt, userPrompt, options = {}) {
     const usage = response.data?.usage || null;
 
     if (response.data?.choices?.[0]?.message?.content) {
-      return {
+      const result = {
         content: response.data.choices[0].message.content,
-        usage
+        usage,
+        cached: false
       };
+
+      // 缓存结果（24小时过期）- 只有提供 URL 和 treeHash 才缓存
+      if (useCache && url && treeHash) {
+        const ttlSeconds = Math.floor((config.crawl.cacheTTL || 3600000) / 1000) * 24;
+        await llmCache.set(cacheKey, result, ttlSeconds);
+        console.log(`[LLM缓存设置] ${url.substring(0, 30)}... (treeHash: ${treeHash})`);
+      }
+
+      return result;
     }
 
     throw new Error('Invalid response from LLM');

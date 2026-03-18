@@ -2,6 +2,19 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
+// 字体路径
+const FONTS_DIR = path.join(__dirname, 'fonts');
+const CHINESE_FONT = path.join(FONTS_DIR, 'NotoSansSC-Regular.ttf');
+
+// 注册中文字体
+let chineseFontRegistered = false;
+function registerChineseFont(doc) {
+  if (!chineseFontRegistered && fs.existsSync(CHINESE_FONT)) {
+    doc.registerFont('Chinese', CHINESE_FONT);
+    chineseFontRegistered = true;
+  }
+}
+
 // Simple text sanitizer - removes or replaces problematic characters
 function sanitizeText(text) {
   if (!text) return '';
@@ -25,6 +38,14 @@ async function generatePDFReport(reportData, url) {
         size: 'A4',
         margins: { top: 50, bottom: 50, left: 50, right: 50 }
       });
+
+      // 注册中文字体
+      registerChineseFont(doc);
+
+      // 设置默认字体（在颜色之前）
+      if (chineseFontRegistered) {
+        doc.font('Chinese');
+      }
 
       const chunks = [];
       doc.on('data', chunk => chunks.push(chunk));
